@@ -1,0 +1,38 @@
+/* Основные стили приложения */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f4f4f4;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Стили для ссылок и кнопок */
+a {
+    transition: color 0.2s;
+}
+
+a:hover {
+    opacity: 0.8;
+}
+
+button:hover:not(:disabled) {
+    opacity: 0.9;
+}
+
+input:focus {
+    outline: none;
+    border-color: #007bff;
+}
