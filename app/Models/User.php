@@ -21,7 +21,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role',
+        'verification_code',
+        'email_verified',
     ];
 
     /**
@@ -47,13 +48,4 @@ class User extends Authenticatable
         ];
     }
 
-    public function orders(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(Order::class, 'user_id');
-    }
-
-    public function acceptedOrders(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(Order::class, 'seller_id');
-    }
 }

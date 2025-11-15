@@ -12,7 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->enum('role', ['buyer', 'seller'])->default('buyer')->after('email');
+            $table->string('verification_code', 4)->nullable()->after('email');
+            $table->boolean('email_verified')->default(false)->after('verification_code');
         });
     }
 
@@ -22,7 +23,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('role');
+            $table->dropColumn(['verification_code', 'email_verified']);
         });
     }
 };

@@ -1,278 +1,332 @@
-import { Head, Link } from '@inertiajs/react';
-import Layout from '../Components/Layout';
+import { useState } from 'react';
+import { router } from '@inertiajs/react';
 
-export default function Dashboard({ auth, orders = [] }) {
-    const isBuyer = auth.user.role === 'buyer';
-    const isSeller = auth.user.role === 'seller';
+export default function Dashboard({ user }) {
+    const [showEmailChange, setShowEmailChange] = useState(false);
+    const [newEmail, setNewEmail] = useState('');
+    const [verificationCode, setVerificationCode] = useState('');
+    const [showCodeInput, setShowCodeInput] = useState(false);
+    const [testCode, setTestCode] = useState('');
+    const [errors, setErrors] = useState({});
+    const [loading, setLoading] = useState(false);
+
+    const handleRequestEmailChange = (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setErrors({});
+
+        router.post('/dashboard/email/request', {
+            email: newEmail,
+        }, {
+            onSuccess: (page) => {
+                const flash = page.props.flash || {};
+                setTestCode(flash.verification_code || '');
+                setShowCodeInput(true);
+                setLoading(false);
+            },
+            onError: (errors) => {
+                setErrors(errors);
+                setLoading(false);
+            },
+        });
+    };
+
+    const handleVerifyEmailChange = (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setErrors({});
+
+        router.post('/dashboard/email/verify', {
+            code: verificationCode,
+        }, {
+            onSuccess: () => {
+                router.reload();
+                setShowEmailChange(false);
+                setShowCodeInput(false);
+                setNewEmail('');
+                setVerificationCode('');
+                setTestCode('');
+            },
+            onError: (errors) => {
+                setErrors(errors);
+                setLoading(false);
+            },
+        });
+    };
 
     return (
-        <>
-            <Head title="Личный кабинет" />
-            <Layout auth={auth}>
-                <div style={styles.container}>
-                    <div style={styles.welcomeCard}>
-                        <h1 style={styles.welcomeTitle}>
-                            Личный кабинет
-                        </h1>
-                        <p style={styles.welcomeText}>
-                            {isBuyer 
-                                ? 'Ваши созданные заказы' 
-                                : 'Ваши принятые заказы'}
-                        </p>
-                    </div>
+        <div style={styles.container}>
+            <div style={styles.header}>
+                <h1 style={styles.title}>Личный кабинет</h1>
+                <button
+                    onClick={() => router.post('/logout')}
+                    style={styles.logoutButton}
+                >
+                    Выйти
+                </button>
+            </div>
 
-                    <div style={styles.card}>
-                        <div style={styles.cardHeader}>
-                            <h2 style={styles.cardTitle}>
-                                {isBuyer ? 'Мои заказы' : 'Принятые заказы'}
-                            </h2>
-                            <Link href="/" style={styles.backLink}>
-                                ← Назад на главную
-                            </Link>
+            <div style={styles.content}>
+                <div style={styles.section}>
+                    <h2 style={styles.sectionTitle}>Профиль</h2>
+                    <div style={styles.info}>
+                        <div style={styles.infoRow}>
+                            <span style={styles.label}>Имя:</span>
+                            <span style={styles.value}>{user.name}</span>
                         </div>
-
-                        {orders.length === 0 ? (
-                            <div style={styles.emptyState}>
-                                <p>
-                                    {isBuyer 
-                                        ? 'У вас пока нет созданных заказов' 
-                                        : 'У вас пока нет принятых заказов'}
-                                </p>
-                                <p style={styles.emptyHint}>
-                                    {isBuyer 
-                                        ? 'Создайте заказ на главной странице' 
-                                        : 'Принимайте заказы на главной странице'}
-                                </p>
-                            </div>
-                        ) : (
-                            <div style={styles.ordersList}>
-                                {orders.map((order) => (
-                                    <div key={order.id} style={styles.orderCard}>
-                                        <div style={styles.orderHeader}>
-                                            <h3 style={styles.orderTitle}>{order.title}</h3>
-                                            <span style={{
-                                                ...styles.statusBadge,
-                                                ...(order.status === 'accepted' ? styles.statusAccepted : {}),
-                                            }}>
-                                                {order.status === 'pending' ? 'Ожидает' : 
-                                                 order.status === 'accepted' ? 'Принят' : 'Выполнен'}
-                                            </span>
-                                        </div>
-                                        <div style={styles.orderInfo}>
-                                            <span style={styles.orderSubject}>📚 {order.subject}</span>
-                                            <span style={styles.orderDeadline}>
-                                                📅 {new Date(order.deadline).toLocaleDateString('ru-RU')}
-                                            </span>
-                                        </div>
-                                        <p style={styles.orderDescription}>{order.description}</p>
-                                        {isBuyer && order.seller && (
-                                            <div style={styles.sellerInfo}>
-                                                <span>Исполнитель: {order.seller.name}</span>
-                                            </div>
-                                        )}
-                                        {isSeller && order.buyer && (
-                                            <div style={styles.buyerInfo}>
-                                                <span>Заказчик: {order.buyer.name}</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-
-                    <div style={styles.infoCard}>
-                        <h3 style={styles.infoTitle}>Информация об аккаунте</h3>
-                        <div style={styles.infoGrid}>
-                            <div style={styles.infoItem}>
-                                <span style={styles.infoLabel}>Роль:</span>
-                                <span style={styles.infoValue}>
-                                    {isBuyer ? '🛒 Покупатель' : '🏪 Продавец'}
-                                </span>
-                            </div>
-                            <div style={styles.infoItem}>
-                                <span style={styles.infoLabel}>Имя:</span>
-                                <span style={styles.infoValue}>{auth.user.name}</span>
-                            </div>
-                            <div style={styles.infoItem}>
-                                <span style={styles.infoLabel}>Email:</span>
-                                <span style={styles.infoValue}>{auth.user.email}</span>
-                            </div>
-                            <div style={styles.infoItem}>
-                                <span style={styles.infoLabel}>Дата регистрации:</span>
-                                <span style={styles.infoValue}>
-                                    {new Date(auth.user.created_at).toLocaleDateString('ru-RU')}
-                                </span>
-                            </div>
+                        <div style={styles.infoRow}>
+                            <span style={styles.label}>Email:</span>
+                            <span style={styles.value}>{user.email}</span>
+                            {user.email_verified ? (
+                                <span style={styles.verified}>✓ Подтвержден</span>
+                            ) : (
+                                <span style={styles.unverified}>✗ Не подтвержден</span>
+                            )}
                         </div>
                     </div>
                 </div>
-            </Layout>
-        </>
+
+                <div style={styles.section}>
+                    <h2 style={styles.sectionTitle}>Смена почты</h2>
+                    {!showEmailChange ? (
+                        <button
+                            onClick={() => setShowEmailChange(true)}
+                            style={styles.button}
+                        >
+                            Изменить email
+                        </button>
+                    ) : (
+                        <div style={styles.form}>
+                            {!showCodeInput ? (
+                                <form onSubmit={handleRequestEmailChange}>
+                                    <div style={styles.field}>
+                                        <label style={styles.label}>Новый email</label>
+                                        <input
+                                            type="email"
+                                            value={newEmail}
+                                            onChange={(e) => setNewEmail(e.target.value)}
+                                            style={styles.input}
+                                            required
+                                        />
+                                        {errors.email && (
+                                            <span style={styles.error}>{errors.email}</span>
+                                        )}
+                                    </div>
+                                    {errors.message && (
+                                        <div style={styles.errorMessage}>{errors.message}</div>
+                                    )}
+                                    <div style={styles.buttons}>
+                                        <button
+                                            type="submit"
+                                            disabled={loading}
+                                            style={styles.button}
+                                        >
+                                            {loading ? 'Отправка...' : 'Отправить код'}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setShowEmailChange(false);
+                                                setNewEmail('');
+                                                setErrors({});
+                                            }}
+                                            style={styles.cancelButton}
+                                        >
+                                            Отмена
+                                        </button>
+                                    </div>
+                                </form>
+                            ) : (
+                                <form onSubmit={handleVerifyEmailChange}>
+                                    <p style={styles.description}>
+                                        Введите код, отправленный на {newEmail}
+                                    </p>
+                                    {testCode && (
+                                        <p style={styles.testCode}>
+                                            Тестовый код: <strong>{testCode}</strong>
+                                        </p>
+                                    )}
+                                    <div style={styles.field}>
+                                        <label style={styles.label}>Код подтверждения</label>
+                                        <input
+                                            type="text"
+                                            value={verificationCode}
+                                            onChange={(e) => {
+                                                const value = e.target.value.replace(/\D/g, '').slice(0, 4);
+                                                setVerificationCode(value);
+                                            }}
+                                            style={styles.input}
+                                            maxLength={4}
+                                            required
+                                            placeholder="0000"
+                                        />
+                                        {errors.code && (
+                                            <span style={styles.error}>{errors.code}</span>
+                                        )}
+                                    </div>
+                                    {errors.message && (
+                                        <div style={styles.errorMessage}>{errors.message}</div>
+                                    )}
+                                    <div style={styles.buttons}>
+                                        <button
+                                            type="submit"
+                                            disabled={loading || verificationCode.length !== 4}
+                                            style={styles.button}
+                                        >
+                                            {loading ? 'Проверка...' : 'Подтвердить'}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setShowCodeInput(false);
+                                                setVerificationCode('');
+                                                setTestCode('');
+                                                setErrors({});
+                                            }}
+                                            style={styles.cancelButton}
+                                        >
+                                            Отмена
+                                        </button>
+                                    </div>
+                                </form>
+                            )}
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
     );
 }
 
 const styles = {
     container: {
-        maxWidth: '1200px',
-        margin: '40px auto',
-        padding: '0 20px',
+        minHeight: '100vh',
+        backgroundColor: '#f5f5f5',
+        padding: '20px',
     },
-    welcomeCard: {
-        backgroundColor: '#fff',
-        borderRadius: '12px',
-        padding: '40px',
-        marginBottom: '30px',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-        textAlign: 'center',
-    },
-    welcomeTitle: {
-        fontSize: '32px',
-        fontWeight: '700',
-        color: '#333',
-        margin: '0 0 10px 0',
-    },
-    welcomeText: {
-        fontSize: '18px',
-        color: '#666',
-        margin: 0,
-    },
-    card: {
-        backgroundColor: '#fff',
-        borderRadius: '12px',
-        padding: '30px',
-        marginBottom: '30px',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-    },
-    cardHeader: {
+    header: {
+        maxWidth: '800px',
+        margin: '0 auto 30px',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
+    },
+    title: {
+        fontSize: '32px',
+        margin: 0,
+    },
+    logoutButton: {
+        padding: '10px 20px',
+        backgroundColor: '#dc3545',
+        color: 'white',
+        border: 'none',
+        borderRadius: '4px',
+        cursor: 'pointer',
+        fontSize: '14px',
+    },
+    content: {
+        maxWidth: '800px',
+        margin: '0 auto',
+    },
+    section: {
+        backgroundColor: 'white',
+        borderRadius: '8px',
+        padding: '30px',
+        marginBottom: '20px',
+        boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+    },
+    sectionTitle: {
+        fontSize: '24px',
         marginBottom: '20px',
     },
-    cardTitle: {
-        fontSize: '24px',
-        fontWeight: '600',
-        color: '#333',
-        margin: 0,
-    },
-    backLink: {
-        color: '#007bff',
-        textDecoration: 'none',
-        fontSize: '16px',
-        fontWeight: '500',
-    },
-    emptyState: {
-        textAlign: 'center',
-        padding: '40px',
-        color: '#666',
-    },
-    emptyHint: {
-        fontSize: '14px',
-        color: '#999',
-        marginTop: '10px',
-    },
-    ordersList: {
-        display: 'grid',
+    info: {
+        display: 'flex',
+        flexDirection: 'column',
         gap: '15px',
     },
-    orderCard: {
-        padding: '20px',
-        backgroundColor: '#f8f9fa',
-        borderRadius: '8px',
-        border: '1px solid #e0e0e0',
-    },
-    orderHeader: {
+    infoRow: {
         display: 'flex',
-        justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: '10px',
+        gap: '10px',
     },
-    orderTitle: {
-        fontSize: '18px',
-        fontWeight: '600',
-        color: '#333',
-        margin: 0,
+    label: {
+        fontWeight: '500',
+        minWidth: '100px',
     },
-    statusBadge: {
-        padding: '5px 12px',
-        borderRadius: '20px',
-        fontSize: '12px',
-        fontWeight: '600',
-        backgroundColor: '#ffc107',
-        color: '#333',
-    },
-    statusAccepted: {
-        backgroundColor: '#28a745',
-        color: '#fff',
-    },
-    orderInfo: {
-        display: 'flex',
-        gap: '20px',
-        marginBottom: '10px',
-        fontSize: '14px',
+    value: {
         color: '#666',
     },
-    orderSubject: {
-        fontWeight: '500',
+    verified: {
+        color: '#28a745',
+        fontSize: '14px',
+        marginLeft: '10px',
     },
-    orderDeadline: {
-        fontWeight: '500',
+    unverified: {
+        color: '#dc3545',
+        fontSize: '14px',
+        marginLeft: '10px',
     },
-    orderDescription: {
-        color: '#555',
-        lineHeight: '1.6',
-        margin: '10px 0',
+    form: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '15px',
     },
-    sellerInfo: {
-        marginTop: '10px',
+    field: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '5px',
+    },
+    input: {
+        padding: '10px',
+        fontSize: '16px',
+        border: '1px solid #ddd',
+        borderRadius: '4px',
+    },
+    description: {
+        fontSize: '14px',
+        color: '#666',
+        marginBottom: '10px',
+    },
+    testCode: {
+        fontSize: '14px',
+        color: '#007bff',
+        marginBottom: '15px',
         padding: '10px',
         backgroundColor: '#e7f3ff',
-        borderRadius: '6px',
-        fontSize: '14px',
-        color: '#0066cc',
+        borderRadius: '4px',
     },
-    buyerInfo: {
-        marginTop: '10px',
-        padding: '10px',
-        backgroundColor: '#fff3cd',
-        borderRadius: '6px',
-        fontSize: '14px',
-        color: '#856404',
-    },
-    infoCard: {
-        backgroundColor: '#fff',
-        borderRadius: '12px',
-        padding: '30px',
-        marginTop: '30px',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-    },
-    infoTitle: {
-        fontSize: '24px',
-        fontWeight: '600',
-        color: '#333',
-        margin: '0 0 20px 0',
-    },
-    infoGrid: {
-        display: 'grid',
-        gap: '15px',
-    },
-    infoItem: {
+    buttons: {
         display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '15px',
-        backgroundColor: '#f8f9fa',
-        borderRadius: '8px',
+        gap: '10px',
     },
-    infoLabel: {
+    button: {
+        padding: '12px 24px',
         fontSize: '16px',
-        fontWeight: '500',
-        color: '#666',
+        backgroundColor: '#007bff',
+        color: 'white',
+        border: 'none',
+        borderRadius: '4px',
+        cursor: 'pointer',
     },
-    infoValue: {
+    cancelButton: {
+        padding: '12px 24px',
         fontSize: '16px',
-        fontWeight: '600',
-        color: '#333',
+        backgroundColor: '#6c757d',
+        color: 'white',
+        border: 'none',
+        borderRadius: '4px',
+        cursor: 'pointer',
+    },
+    error: {
+        color: 'red',
+        fontSize: '12px',
+    },
+    errorMessage: {
+        color: 'red',
+        fontSize: '14px',
+        padding: '10px',
+        backgroundColor: '#ffe6e6',
+        borderRadius: '4px',
     },
 };
+

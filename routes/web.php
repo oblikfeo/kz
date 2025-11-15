@@ -1,43 +1,28 @@
 <?php
 
-use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\RegisterController;
-use App\Http\Controllers\Auth\ForgotPasswordController;
-use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\LogoutController;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 // Публичные маршруты
-Route::get('/', [\App\Http\Controllers\OrderController::class, 'board'])->name('home');
+Route::get('/', function () {
+    return redirect('/auth');
+});
 
-// Аутентификация
+// Авторизация
 Route::middleware('guest')->group(function () {
-    Route::get('/login', [LoginController::class, 'create'])->name('login');
-    Route::post('/login', [LoginController::class, 'store']);
-    
-    Route::get('/register', [RegisterController::class, 'create'])->name('register');
-    Route::post('/register', [RegisterController::class, 'store']);
-    
-    Route::get('/forgot-password', [ForgotPasswordController::class, 'create'])->name('password.request');
-    Route::post('/forgot-password', [ForgotPasswordController::class, 'store'])->name('password.email');
-    
-    Route::get('/reset-password/{token}', [ResetPasswordController::class, 'create'])->name('password.reset');
-    Route::post('/reset-password', [ResetPasswordController::class, 'store'])->name('password.update');
+    Route::get('/auth', [AuthController::class, 'show'])->name('auth');
+    Route::post('/auth/send-code', [AuthController::class, 'sendVerificationCode'])->name('auth.send-code');
+    Route::post('/auth/register', [AuthController::class, 'register'])->name('auth.register');
+    Route::post('/auth/verify', [AuthController::class, 'verify'])->name('auth.verify');
+    Route::post('/auth/login', [AuthController::class, 'login'])->name('auth.login');
 });
 
 // Защищенные маршруты
 Route::middleware('auth')->group(function () {
-    Route::get('/dashboard', [\App\Http\Controllers\OrderController::class, 'index'])->name('dashboard');
-    
-    Route::get('/profile', [\App\Http\Controllers\ProfileController::class, 'index'])->name('profile');
-    Route::put('/profile', [\App\Http\Controllers\ProfileController::class, 'update']);
-    Route::put('/profile/password', [\App\Http\Controllers\ProfileController::class, 'updatePassword']);
-    
-    // Заказы
-    Route::post('/orders', [\App\Http\Controllers\OrderController::class, 'store'])->name('orders.store');
-    Route::post('/orders/{order}/accept', [\App\Http\Controllers\OrderController::class, 'accept'])->name('orders.accept');
-    Route::get('/orders/accepted', [\App\Http\Controllers\OrderController::class, 'myAccepted'])->name('orders.accepted');
-    
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/dashboard/email/request', [DashboardController::class, 'requestEmailChange'])->name('dashboard.email.request');
+    Route::post('/dashboard/email/verify', [DashboardController::class, 'verifyEmailChange'])->name('dashboard.email.verify');
     Route::post('/logout', [LogoutController::class, 'destroy'])->name('logout');
 });

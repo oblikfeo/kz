@@ -36,3 +36,109 @@ input:focus {
     outline: none;
     border-color: #007bff;
 }
+
+/* Анимированные колибри для фона (опционально, можно включить) */
+.hummingbird-animation {
+    position: absolute;
+    opacity: 0.15;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.hummingbird-animation svg {
+    width: 60px;
+    height: 60px;
+}
+
+.hummingbird-bird-1 {
+    top: 20%;
+    animation: fly-1 25s linear infinite;
+}
+
+.hummingbird-bird-2 {
+    top: 60%;
+    animation: fly-2 30s linear infinite;
+}
+
+.hummingbird-bird-3 {
+    top: 40%;
+    animation: fly-3 35s linear infinite;
+}
+
+@keyframes fly-1 {
+    0% { left: -10%; transform: translateY(0px) rotate(0deg); }
+    25% { transform: translateY(50px) rotate(5deg); }
+    50% { transform: translateY(-30px) rotate(-3deg); }
+    75% { transform: translateY(40px) rotate(2deg); }
+    100% { left: 110%; transform: translateY(0px) rotate(0deg); }
+}
+
+@keyframes fly-2 {
+    0% { left: -5%; transform: translateY(30px) rotate(2deg); }
+    33% { transform: translateY(-40px) rotate(-4deg); }
+    66% { transform: translateY(60px) rotate(3deg); }
+    100% { left: 105%; transform: translateY(30px) rotate(2deg); }
+}
+
+@keyframes fly-3 {
+    0% { left: -8%; transform: translateY(-20px) rotate(-2deg); }
+    40% { transform: translateY(70px) rotate(6deg); }
+    70% { transform: translateY(-50px) rotate(-5deg); }
+    100% { left: 108%; transform: translateY(-20px) rotate(-2deg); }
+}
+
+/* Анимации для колибри на странице авторизации */
+@keyframes fly1 {
+    0% { left: -10%; transform: translateY(0px) rotate(0deg); }
+    25% { transform: translateY(50px) rotate(5deg); }
+    50% { transform: translateY(-30px) rotate(-3deg); }
+    75% { transform: translateY(40px) rotate(2deg); }
+    100% { left: 110%; transform: translateY(0px) rotate(0deg); }
+}
+
+@keyframes fly2 {
+    0% { left: -5%; transform: translateY(30px) rotate(2deg); }
+    33% { transform: translateY(-40px) rotate(-4deg); }
+    66% { transform: translateY(60px) rotate(3deg); }
+    100% { left: 105%; transform: translateY(30px) rotate(2deg); }
+}
+
+@keyframes fly3 {
+    0% { left: -8%; transform: translateY(-20px) rotate(-2deg); }
+    40% { transform: translateY(70px) rotate(6deg); }
+    70% { transform: translateY(-50px) rotate(-5deg); }
+    100% { left: 108%; transform: translateY(-20px) rotate(-2deg); }
+}
+
+/* Анимация градиента */
+@keyframes gradientMove {
+    0% { background-position: center, 0% 0%; }
+    25% { background-position: center, 100% 50%; }
+    50% { background-position: center, 100% 100%; }
+    75% { background-position: center, 0% 50%; }
+    100% { background-position: center, 0% 0%; }
+}
+
+/* Анимация волн */
+@keyframes waveMove {
+    0% { 
+        transform: translate(0, 0) scale(1);
+        opacity: 0.9;
+    }
+    25% { 
+        transform: translate(50px, -30px) scale(1.2);
+        opacity: 1;
+    }
+    50% { 
+        transform: translate(-30px, 50px) scale(0.9);
+        opacity: 0.85;
+    }
+    75% { 
+        transform: translate(30px, 30px) scale(1.1);
+        opacity: 0.95;
+    }
+    100% { 
+        transform: translate(0, 0) scale(1);
+        opacity: 0.9;
+    }
+}
